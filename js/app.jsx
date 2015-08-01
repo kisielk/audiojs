@@ -1,35 +1,19 @@
-var InputSelector = React.createClass({
+var PortSelector = React.createClass({
+  handleChange: function(e) {
+    this.props.onChange(e.target.value);
+  },
   render: function() {
-    inputNodes = [];
-    this.props.inputs.map(function(input) {
-      inputNodes.push(
-        <option key={input.value.name}>{input.value.name}</option>
+    portNodes = [];
+    this.props.ports.map(function(port) {
+      portNodes.push(
+        <option key={port.value.name} value={port.value}>{port.value.name}</option>
       )
     });
     return (
-      <div className="inputSelector">Input: 
-        <select>
-          {inputNodes}
+        <select onChange={this.handleChange}>
+          <option>-</option>
+          {portNodes}
         </select>
-      </div>
-    );
-  }
-});
-
-var OutputSelector = React.createClass({
-  render: function() {
-    outputNodes = [];
-    this.props.outputs.map(function(output) {
-      outputNodes.push(
-        <option key={output.value.name}>{output.value.name}</option>
-      )
-    });
-    return (
-      <div className="outputSelector">Output: 
-        <select>
-          {outputNodes}
-        </select>
-      </div>
     );
   }
 });
@@ -49,7 +33,9 @@ var DeviceSelector = React.createClass({
     return {
       inputs: [],
       outputs: [],
-      messages: []
+      messages: [],
+      input: null,
+      output: null,
     };
   },
 
@@ -60,7 +46,6 @@ var DeviceSelector = React.createClass({
       }).then(function(midiAccess) {
         var inputData = [];
         var inputs = midiAccess.inputs.values();
-        console.log(inputs);
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
           inputData.push(input);
         }
@@ -71,22 +56,35 @@ var DeviceSelector = React.createClass({
         }
         this.setState({inputs: inputData, outputs: outputData});
       }.bind(this), function(e) {
-      
+        //TODO Handle error 
       });
     }
   },
 
-  handleSubmit: function(e) {
+  handleConnect: function(e) {
     e.preventDefault();
-    console.log("submit!");
+    console.log(this.state.input);
+    console.log(this.state.output);
+  },
+
+  handleInputChange: function(i) {
+    this.setState({input: i});
+  },
+
+  handleOutputChange: function(o) {
+    this.setState({output: o});
   },
 
   render: function() {
     return (
       <div>
-      <form className="deviceSelector" onSubmit={this.handleSubmit}>
-        <InputSelector inputs={this.state.inputs} />
-        <OutputSelector outputs={this.state.outputs} />
+      <form className="deviceSelector" onSubmit={this.handleConnect}>
+        <div>
+        Input: <PortSelector ports={this.state.inputs} onChange={this.handleInputChange} ref="input" />
+        </div>
+        <div>
+        Output: <PortSelector ports={this.state.outputs} onChange={this.handleOutputChange} ref="output" />
+        </div>
         <input type="submit" value="Connect" />
       </form>
       </div>
@@ -99,6 +97,10 @@ var MIDILogger = React.createClass({
     return {messages: []};
   },
 
+  handleSelect: function(input, output) {
+    console.log(input, output);
+  },
+
   render: function() {
     var messageNodes = this.state.messages.map(function(message) {
       return (
@@ -107,7 +109,7 @@ var MIDILogger = React.createClass({
     });
     return (
       <div className="midiLogger">
-        <DeviceSelector/>
+        <DeviceSelector deviceSelected={this.handleSelect}/>
         {messageNodes}
       </div>
     );
