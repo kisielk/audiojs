@@ -6,7 +6,7 @@ var PortSelector = React.createClass({
     portNodes = [];
     this.props.ports.map(function(port) {
       portNodes.push(
-        <option key={port.value.name} value={port.value}>{port.value.name}</option>
+        <option key={port.name} value={port.id}>{port.name}</option>
       )
     });
     return (
@@ -47,12 +47,12 @@ var DeviceSelector = React.createClass({
         var inputData = [];
         var inputs = midiAccess.inputs.values();
         for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-          inputData.push(input);
+          inputData.push(input.value);
         }
         var outputData = [];
         var outputs = midiAccess.outputs.values();
         for (var output = outputs.next(); output && !output.done; output = outputs.next()) {
-          outputData.push(output);
+          outputData.push(output.value);
         }
         this.setState({inputs: inputData, outputs: outputData});
       }.bind(this), function(e) {
@@ -63,12 +63,14 @@ var DeviceSelector = React.createClass({
 
   handleConnect: function(e) {
     e.preventDefault();
-    console.log(this.state.input);
-    console.log(this.state.output);
+    this.props.onConnect(this.state.input, this.state.output);
   },
 
-  handleInputChange: function(i) {
-    this.setState({input: i});
+  handleInputChange: function(id) {
+    var inputs = this.state.inputs.filter(function(i) {
+      return i.id == id;                                 
+    })
+    this.setState({input: inputs[0]});
   },
 
   handleOutputChange: function(o) {
@@ -94,22 +96,34 @@ var DeviceSelector = React.createClass({
 
 var MIDILogger = React.createClass({
   getInitialState: function() {
-    return {messages: []};
+    return {
+      input: null,
+      output: null,
+      messages: [],
+    };
   },
 
-  handleSelect: function(input, output) {
+  handleConnect: function(input, output) {
+    // TODO: Disconnect any existing connections
+    input.onmidimessage = this.onMessage;
+    this.setState({input: input, output: output});
     console.log(input, output);
+  },
+
+  onMessage: function(m) {
+    console.log(m);
+    this.setState({messages: this.state.messages.concat([m])});
   },
 
   render: function() {
     var messageNodes = this.state.messages.map(function(message) {
       return (
-        <MIDIMessage bytes={message}/>
+        <MIDIMessage bytes={message.data}/>
       );
     });
     return (
       <div className="midiLogger">
-        <DeviceSelector deviceSelected={this.handleSelect}/>
+        <DeviceSelector onConnect={this.handleConnect}/>
         {messageNodes}
       </div>
     );
