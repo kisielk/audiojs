@@ -27,6 +27,41 @@ var Slider = React.createClass({
   }
 });
 
+var Square = React.createClass({
+  getInitialState() {
+    return {
+      pulseWidth: 50,
+    };
+  },
+
+  componentDidMount() {
+    this.props.onChange(this.wave);
+  },
+
+  wave: function(x) {
+    x = x % 1;
+    return x < this.state.pulseWidth / 100 ? 1 : -1;
+  },
+
+  handleChange: function(widget, e) {
+    var newState = {}
+    newState[widget] = Number(e.target.value);
+    this.setState(newState);
+    this.props.onChange(this.wave);
+  },
+
+  render: function() {
+    return (
+      <div>
+      <div>Ratio: <Slider value={this.state.pulseWidth} min="0" max="100" step="0.1" 
+      onChange={this.handleChange.bind(this, "pulseWidth")}/>
+      </div>
+      </div>
+    );
+  },
+
+});
+
 var SineTriangle = React.createClass({
   getInitialState() {
     return {
@@ -152,6 +187,8 @@ var Waveforms = React.createClass({
       waveform = <SineTriangle onChange={this.newWave}/>
     } else if (this.state.waveform == "saw") {
       waveform = <Saw onChange={this.newWave}/>
+    } else if (this.state.waveform == "square") {
+      waveform = <Square onChange={this.newWave}/>
     }
     return (
       <div className="Waveforms">
@@ -162,6 +199,7 @@ var Waveforms = React.createClass({
       <select onChange={this.selectWaveform} value={this.state.waveform}>
       <option value="sine">Sine</option>
       <option value="saw">Saw</option>
+      <option value="square">Square</option>
       </select>
       </div>
       {waveform}
