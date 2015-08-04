@@ -53,7 +53,7 @@ var Square = React.createClass({
   render: function() {
     return (
       <div>
-      <div>Ratio: <Slider value={this.state.pulseWidth} min="0" max="100" step="0.1" 
+      <div>Pulse Width: <Slider value={this.state.pulseWidth} min="0" max="100" step="0.1" 
       onChange={this.handleChange.bind(this, "pulseWidth")}/>
       </div>
       </div>
