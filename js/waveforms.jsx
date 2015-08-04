@@ -2,8 +2,18 @@ function sine(x) {
   return Math.sin(x * Math.PI * 2);
 };
 
-function jagged(x) {
-  return 0.9 * saw(x) + 0.1 * saw(x * 3);
+function triangle(x) {
+  x = x - Math.floor(x);
+  return x;
+};
+
+function saw(x) {
+  x = x - Math.floor(x);
+  val = x * 2;
+  if (x > 0.5) {
+    val += -2; 
+  }
+  return val;
 };
 
 var Slider = React.createClass({
@@ -17,14 +27,39 @@ var Slider = React.createClass({
   }
 });
 
-function saw(x) {
-  x = x - Math.floor(x)
-  val = x * 2;
-  if (x > 0.5) {
-    val += -2; 
-  }
-  return val;
-};
+var SineTriangle = React.createClass({
+  getInitialState() {
+    return {
+      ratio: 0,
+    };
+  },
+
+  wave: function(x) {
+    var ratio = this.state.ratio / 100;
+    return (1 - ratio) * sine(x) + ratio * triangle(x);
+  },
+
+  componentDidMount() {
+    this.props.onChange(this.wave);
+  },
+
+  handleChange: function(widget, e) {
+    var newState = {}
+    newState[widget] = Number(e.target.value);
+    this.setState(newState);
+    this.props.onChange(this.wave);
+  },
+
+  render: function() {
+    return (
+      <div>
+      <div>Ratio: <Slider key="ratio" value={this.state.ratio} min="0" max="100" step="0.1" 
+      onChange={this.handleChange.bind(this, "ratio")}/>
+      </div>
+      </div>
+    );
+  },
+});
 
 var Saw = React.createClass({
   getInitialState() {
@@ -98,12 +133,13 @@ var Canvas = React.createClass({
 var Waveforms = React.createClass({
   getInitialState: function() {
     return {
-      waveFunc: function(x) { return 0; },
+      waveFunc: function(x) { return 0 },
+      waveform: "saw",
     };
   },
 
-  handleChange: function(e) {
-
+  selectWaveform: function(w) {
+    this.setState({waveform: w.target.value});
   },
 
   newWave: function(wave) {
@@ -111,18 +147,24 @@ var Waveforms = React.createClass({
   },
 
   render: function() {
+    var waveform;
+    if (this.state.waveform == "sine") {
+      waveform = <SineTriangle onChange={this.newWave}/>
+    } else if (this.state.waveform == "saw") {
+      waveform = <Saw onChange={this.newWave}/>
+    }
     return (
       <div className="Waveforms">
       <div>
       <Canvas width={400} height={300} waveFunc={this.state.waveFunc}/>
       </div>
       <div>
-      <select onChange={this.handleChange}>
-      <option>Sine</option>
-      <option>Saw</option>
+      <select onChange={this.selectWaveform} value={this.state.waveform}>
+      <option value="sine">Sine</option>
+      <option value="saw">Saw</option>
       </select>
       </div>
-      <Saw onChange={this.newWave}/>
+      {waveform}
       </div>
     )
   }
