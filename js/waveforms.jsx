@@ -2,15 +2,6 @@ function sine(x) {
   return Math.sin(x * Math.PI * 2);
 };
 
-function saw(x) {
-  x = x - Math.floor(x)
-  val = x * 2;
-  if (x > 0.5) {
-    val += -2; 
-  }
-  return val;
-};
-
 function jagged(x) {
   return 0.9 * saw(x) + 0.1 * saw(x * 3);
 };
@@ -26,6 +17,15 @@ var Slider = React.createClass({
   }
 });
 
+function saw(x) {
+  x = x - Math.floor(x)
+  val = x * 2;
+  if (x > 0.5) {
+    val += -2; 
+  }
+  return val;
+};
+
 var Saw = React.createClass({
   getInitialState() {
     return {
@@ -34,15 +34,19 @@ var Saw = React.createClass({
     };
   },
 
+  wave: function(x) {
+    return (1 - this.state.amplitude) * saw(x) + this.state.amplitude * saw(x * this.state.ratio);
+  },
+
+  componentDidMount() {
+    this.props.onChange(this.wave);
+  },
+
   handleChange: function(widget, e) {
     var newState = {}
     newState[widget] = Number(e.target.value);
     this.setState(newState);
-    this.props.onChange(
-      function(x) {
-        return (1 - this.state.amplitude) * saw(x) + this.state.amplitude * saw(x * this.state.ratio);
-      }.bind(this)
-    );
+    this.props.onChange(this.wave);
   },
 
   render: function() {
