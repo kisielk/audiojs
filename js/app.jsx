@@ -39,7 +39,7 @@ var DeviceSelector = React.createClass({
     };
   },
 
-  componentDidMount: function() {
+  scanDevices: function() {
     if (navigator.requestMIDIAccess) {
       navigator.requestMIDIAccess({
         sysex: true
@@ -61,9 +61,18 @@ var DeviceSelector = React.createClass({
     }
   },
 
+  componentDidMount: function() {
+    this.scanDevices();
+  },
+
   handleConnect: function(e) {
     e.preventDefault();
     this.props.onConnect(this.state.input, this.state.output);
+  },
+
+  handleRescan: function(e) {
+    e.preventDefault();
+    this.scanDevices();
   },
 
   handleInputChange: function(id) {
@@ -87,6 +96,7 @@ var DeviceSelector = React.createClass({
         <div>
         Output: <PortSelector ports={this.state.outputs} onChange={this.handleOutputChange} ref="output" />
         </div>
+        <input type="button" value="Rescan" onClick={this.handleRescan} />
         <input type="submit" value="Connect" />
       </form>
       </div>
